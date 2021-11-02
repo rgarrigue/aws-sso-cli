@@ -28,6 +28,7 @@ import (
 	"strconv"
 
 	"github.com/c-bata/go-prompt"
+	log "github.com/sirupsen/logrus"
 	"github.com/synfinatic/aws-sso-cli/sso"
 	"github.com/synfinatic/aws-sso-cli/storage"
 	"github.com/synfinatic/aws-sso-cli/utils"
@@ -106,7 +107,7 @@ func (cc *ConsoleCmd) Run(ctx *RunContext) error {
 	}
 	sso.Refresh(ctx.Settings)
 
-	c := NewTagsCompleter(ctx, sso, openConsole)
+	c := NewTagsCompleter(ctx, sso)
 	opts := ctx.Settings.DefaultOptions(c.ExitChecker)
 	opts = append(opts, ctx.Settings.GetColorOptions()...)
 
@@ -117,7 +118,13 @@ func (cc *ConsoleCmd) Run(ctx *RunContext) error {
 	)
 
 	p.Run()
-	return nil
+	aId, rName, err := utils.ParseRoleARN(c.Arn)
+	if err != nil {
+		log.Fatalf("Unable to parse ARN %s: %s", c.Arn, err.Error())
+	}
+	region := ctx.Settings.GetDefaultRegion(aId, rName)
+	awsSSO := doAuth(ctx)
+	return openConsole(ctx, awsSSO, aId, rName, region)
 }
 
 // opens the AWS console or just prints the URL

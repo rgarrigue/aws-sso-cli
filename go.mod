@@ -10,7 +10,7 @@ require (
 	github.com/alecthomas/kong v0.2.15
 	github.com/atotto/clipboard v0.1.4
 	github.com/aws/aws-sdk-go v1.38.40
-	github.com/c-bata/go-prompt v0.2.5 // 0.2.6 is broken
+	github.com/c-bata/go-prompt v0.2.6 // 0.2.6 is broken
 	github.com/davecgh/go-spew v1.1.1
 	github.com/goccy/go-yaml v1.9.4
 	github.com/knadh/koanf v0.16.0
@@ -22,4 +22,5 @@ require (
 
 	// see: https://github.com/sirupsen/logrus/issues/1275
 	golang.org/x/sys v0.0.0-20210817190340-bfb29a6856f2 // indirect
+	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211
 )

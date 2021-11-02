@@ -28,7 +28,6 @@ import (
 	//	"github.com/davecgh/go-spew/spew"
 	log "github.com/sirupsen/logrus"
 	"github.com/synfinatic/aws-sso-cli/sso"
-	"github.com/synfinatic/aws-sso-cli/utils"
 )
 
 type CompleterExec = func(*RunContext, *sso.AWSSSO, int64, string, string) error
@@ -39,10 +38,10 @@ type TagsCompleter struct {
 	roleTags *sso.RoleTags
 	allTags  *sso.TagsList
 	suggest  []prompt.Suggest
-	exec     CompleterExec
+	Arn      string
 }
 
-func NewTagsCompleter(ctx *RunContext, s *sso.SSOConfig, exec CompleterExec) *TagsCompleter {
+func NewTagsCompleter(ctx *RunContext, s *sso.SSOConfig) *TagsCompleter {
 	set := ctx.Settings
 	roleTags := set.Cache.Roles.GetRoleTagsSelect()
 	allTags := set.Cache.Roles.GetAllTagsSelect()
@@ -53,7 +52,6 @@ func NewTagsCompleter(ctx *RunContext, s *sso.SSOConfig, exec CompleterExec) *Ta
 		roleTags: roleTags,
 		allTags:  allTags,
 		suggest:  completeTags(roleTags, allTags, set.AccountPrimaryTag, []string{}),
-		exec:     exec,
 	}
 }
 
@@ -102,17 +100,7 @@ func (tc *TagsCompleter) Executor(args string) {
 		roleArn = ssoRoles[0]
 	}
 
-	aId, rName, err := utils.ParseRoleARN(roleArn)
-	if err != nil {
-		log.Fatalf("Unable to parse %s: %s", roleArn, err.Error())
-	}
-	region := tc.ctx.Settings.GetDefaultRegion(aId, rName)
-	awsSSO := doAuth(tc.ctx)
-	err = tc.exec(tc.ctx, awsSSO, aId, rName, region)
-	if err != nil {
-		log.Fatalf("Unable to exec: %s", err.Error())
-	}
-	return
+	tc.Arn = roleArn
 }
 
 // completeExitChecker impliments prompt.ExitChecker

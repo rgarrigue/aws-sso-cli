@@ -20,14 +20,32 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/alecthomas/kong"
+	"golang.org/x/term"
 	//	"github.com/davecgh/go-spew/spew"
 	log "github.com/sirupsen/logrus"
 	"github.com/synfinatic/aws-sso-cli/sso"
 	"github.com/synfinatic/aws-sso-cli/storage"
 	"github.com/synfinatic/aws-sso-cli/utils"
 )
+
+var termState *term.State
+
+func saveTermState() {
+	oldState, err := term.GetState(int(os.Stdin.Fd()))
+	if err != nil {
+		return
+	}
+	termState = oldState
+}
+
+func restoreTermState() {
+	if termState != nil {
+		term.Restore(int(os.Stdin.Fd()), termState)
+	}
+}
 
 // These variables are defined in the Makefile
 var Version = "unknown"
@@ -103,6 +121,8 @@ func main() {
 	cli := CLI{}
 	ctx, override := parseArgs(&cli)
 	var err error
+
+	saveTermState()
 
 	run_ctx := RunContext{
 		Kctx: ctx,

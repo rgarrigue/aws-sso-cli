@@ -90,7 +90,7 @@ func (cc *ExecCmd) Run(ctx *RunContext) error {
 	sso.Refresh(ctx.Settings)
 	fmt.Printf("Please use `exit` or `Ctrl-D` to quit.\n")
 
-	c := NewTagsCompleter(ctx, sso, execCmd)
+	c := NewTagsCompleter(ctx, sso)
 	opts := ctx.Settings.DefaultOptions(c.ExitChecker)
 	opts = append(opts, ctx.Settings.GetColorOptions()...)
 
@@ -100,7 +100,16 @@ func (cc *ExecCmd) Run(ctx *RunContext) error {
 		opts...,
 	)
 	p.Run()
-	return nil
+
+	restoreTermState()
+	log.Errorf("outside of go-prompt")
+	aId, rName, err := utils.ParseRoleARN(c.Arn)
+	if err != nil {
+		log.Fatalf("Unable to parse ARN %s: %s", c.Arn, err.Error())
+	}
+	region := ctx.Settings.GetDefaultRegion(aId, rName)
+	awsSSO := doAuth(ctx)
+	return execCmd(ctx, awsSSO, aId, rName, region)
 }
 
 const (
