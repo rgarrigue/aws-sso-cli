@@ -8,5 +8,6 @@ linters:
     - gofmt
     - gosec
     - misspell
+    - revive
     - whitespace
       # - unparam
